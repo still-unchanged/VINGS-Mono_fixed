@@ -38,7 +38,7 @@ intrinsic:
 
 frontend:
   weight: /data/wuke/workspace/VINGS-Mono/ckpts/droid.pth
-  image_size: [344, 616] # [240, 800]
+  image_size: [240, 800]  # 3.31 matches source
   buffer: 80
   filter_thresh: 2.4
   c2i: None

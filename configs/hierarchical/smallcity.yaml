@@ -39,7 +39,7 @@ intrinsic: # H, W, intrinsic就用原始的哈
 
 frontend:
   weight: /data/wuke/workspace/VINGS-Mono/ckpts/droid.pth
-  image_size: [344, 616]
+  image_size: [464, 688]  # 1.48 matches source (690x1024)
   buffer: 80
   filter_thresh: 2.4
   c2i: None
