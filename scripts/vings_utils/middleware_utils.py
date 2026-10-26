@@ -228,8 +228,25 @@ def judge_and_package_v3(dba_fusion, intrinsics):
             cov_median = torch.tensor(np.median(depths_cov.cpu().numpy().reshape(N_frames, -1), axis=1)[:, None, None, None], device=depths.device) # (N, 1, 1)
             zero_mask = torch.bitwise_or(depths > dba_fusion.cfg['middleware']['max_depth'], depths_cov>dba_fusion.cfg['middleware']['cov_times']*(cov_median))
             # zero_mask = depths > dba_fusion.cfg['middleware']['max_depth']
+            depth_too_far = depths > dba_fusion.cfg['middleware']['max_depth']
+            cov_too_uncertain = depths_cov > dba_fusion.cfg['middleware']['cov_times'] * cov_median
+            if zero_mask.all():
+                print(
+                    "[depth-filter] all packaged pixels rejected: "
+                    f"depth range=({depths.min().item():.6g}, {depths.max().item():.6g}), "
+                    f"depth>max={depth_too_far.sum().item()}/{depths.numel()}, "
+                    f"cov range=({depths_cov.min().item():.6g}, {depths_cov.max().item():.6g}), "
+                    f"cov threshold range=({(dba_fusion.cfg['middleware']['cov_times'] * cov_median).min().item():.6g}, "
+                    f"{(dba_fusion.cfg['middleware']['cov_times'] * cov_median).max().item():.6g}), "
+                    f"cov>threshold={cov_too_uncertain.sum().item()}/{depths_cov.numel()}"
+                )
             depths[zero_mask] = 0.0
-            depths_cov[depths==0] = depths_cov[depths>0].max()
+            invalid_depths = depths == 0
+            valid_depths = ~invalid_depths
+            if invalid_depths.any():
+                valid_cov = depths_cov[valid_depths]
+                invalid_cov = valid_cov.max() if valid_cov.numel() else depths_cov.max()
+                depths_cov[invalid_depths] = invalid_cov
             
             # depths_cov[zero_mask] = 0.0
             w2c_tqs    = dba_fusion.video.poses[valid_localkf_id]

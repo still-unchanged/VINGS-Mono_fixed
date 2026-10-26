@@ -43,7 +43,7 @@ class Runner:
         
         self.mapper = GaussianModel(cfg)
         
-        self.looper = LoopModel(cfg)
+        self.looper = LoopModel(cfg) if cfg.get('use_loop', False) else None
         
         if 'use_metric' in cfg.keys() and cfg['use_metric']:
             self.metric_predictor = Metric_Model(cfg) 

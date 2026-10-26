@@ -4,3 +4,4 @@ build_gtsam/*
 # submodules/*  # Commented out to allow submodules
 ckpts/*
 output/*
+.DS_Store

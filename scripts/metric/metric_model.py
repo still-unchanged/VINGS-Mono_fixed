@@ -1,9 +1,13 @@
 import torch
 import cv2
 import numpy as np
+from pathlib import Path
 import sys
-sys.path.append('/data/wuke/workspace/VINGS-Mono/submodules/')
+submodules_dir = Path(__file__).resolve().parents[2] / 'submodules'
+sys.path.insert(0, str(submodules_dir))
 from metric_modules import Metric
+
+REPO_ROOT = Path(__file__).resolve().parents[2]
 # from metric.metric3d import Metric3D_Model
 
 class Metric_Model:
@@ -22,8 +26,7 @@ class Metric_Model:
         '''
         Metric3D
         '''
-        import os
-        ckpt_path = 'ckpts/metric_depth_vit_small_800k.pth'
+        ckpt_path = REPO_ROOT / 'ckpts' / 'metric_depth_vit_small_800k.pth'
         # self.predictor = Metric(checkpoint='/data/wuke/workspace/droid_metric/weights/metric_depth_vit_small_800k.pth', model_name='v2-S')
         self.predictor = Metric(checkpoint=ckpt_path, model_name='v2-S')
         if u_scale is None:

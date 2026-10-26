@@ -46,7 +46,7 @@ class DBAFusion:
         print(weights)
         self.net = DroidNet()
         state_dict = OrderedDict([
-            (k.replace("module.", ""), v) for (k, v) in torch.load(weights).items()])
+            (k.replace("module.", ""), v) for (k, v) in torch.load(weights, map_location="cpu").items()])
 
         state_dict["update.weight.2.weight"] = state_dict["update.weight.2.weight"][:2]
         state_dict["update.weight.2.bias"] = state_dict["update.weight.2.bias"][:2]

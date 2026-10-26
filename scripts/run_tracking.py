@@ -20,7 +20,6 @@ from vings_utils.middleware_utils import judge_and_package
 import open3d as o3d
 from lietorch import SE3
 from gaussian.vis_utils import check_pcd_with_poses
-from metric.metric_model import Metric_Model
 
 class Runner:
     def __init__(self, cfg):
@@ -29,6 +28,7 @@ class Runner:
         cfg['frontend']['c2i'] = self.dataset.c2i # (4, 4), ndarray
         self.tracker = DBAFusion(cfg)
         if 'use_metric' in cfg.keys() and cfg['use_metric']:
+            from metric.metric_model import Metric_Model
             self.metric_predictor = Metric_Model(cfg)
             
             

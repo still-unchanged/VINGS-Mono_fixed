@@ -47,7 +47,7 @@ def _evaluate_error_custom(self, pose_i, vel_i, pose_j, vel_j, bias_i, bias_j,
     The public API signature in GTSAM 4.2 bindings varies by build:
     - Some builds accept H args as output parameters (in-place fill)
     - Others return tuples (error, J1, J2, J3, J4, J5, J6)
-    - Newer builds return only error with no Jacobians exposed
+    - Some builds return only the residual and expose no Jacobians
     
     We attempt all three in order, caching the working one after first call.
     """
@@ -74,6 +74,28 @@ def _evaluate_error_custom(self, pose_i, vel_i, pose_j, vel_j, bias_i, bias_j,
             np.copyto(H5, J_bias_i)
             np.copyto(H6, J_bias_j)
             return err
+        if isinstance(result, np.ndarray):
+            # VINGS-Mono's alignment step only consumes the rotation residual
+            # derivative with respect to gyro bias in bias_i (H5[:, 3:6]).
+            # This GTSAM binding returns no Jacobians, so estimate that block
+            # numerically while keeping the other output buffers initialized.
+            for jacobian in (H1, H2, H3, H4, H5, H6):
+                jacobian.fill(0.0)
+
+            accel_i = bias_i.accelerometer()
+            gyro_i = bias_i.gyroscope()
+            epsilon = 1e-6
+            for axis in range(3):
+                delta = np.zeros(3)
+                delta[axis] = epsilon
+                bias_plus = gtsam.imuBias.ConstantBias(accel_i, gyro_i + delta)
+                bias_minus = gtsam.imuBias.ConstantBias(accel_i, gyro_i - delta)
+                err_plus = self.evaluateError(
+                    pose_i, vel_i, pose_j, vel_j, bias_plus, bias_j)
+                err_minus = self.evaluateError(
+                    pose_i, vel_i, pose_j, vel_j, bias_minus, bias_j)
+                H5[:, axis + 3] = (err_plus - err_minus) / (2.0 * epsilon)
+            return result
     except (TypeError, ValueError):
         pass
     
